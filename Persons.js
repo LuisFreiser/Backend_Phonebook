@@ -7,6 +7,7 @@ const app = express();
 app.use(express.json());
 app.use(morgan("tiny"));
 app.use(cors());
+app.use(express.static("dist"));
 
 //! Middleware personalizado para registrar el cuerpo de las solicitudes POST
 app.use((req, res, next) => {
