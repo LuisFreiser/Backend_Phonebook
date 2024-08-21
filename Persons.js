@@ -3,15 +3,15 @@ require("dotenv").config();
 
 const express = require("express");
 const Person = require("./models/connectDB");
-const morgan = require("morgan");
-const cors = require("cors");
+const morgan = require("morgan"); //!Importando morgan para registrar peticiones de las solicitudes POST en consola.
+const cors = require("cors"); //!Importando cors para permitir peticiones de otros dominios.
 const app = express();
 
 //! Middlewares jsonParser y express.json
-app.use(express.json());
+app.use(express.json()); //! Middleware para parsear el body de las solicitudes POST.
 app.use(morgan("tiny"));
 app.use(cors());
-app.use(express.static("dist"));
+app.use(express.static("dist")); //! Middleware para permitir paginas estaticas que se encuentran en la carpeta "dist" Ejm index.html.
 
 //! Middleware personalizado para registrar el cuerpo de las solicitudes POST en consola.
 app.use((req, res, next) => {
@@ -21,15 +21,16 @@ app.use((req, res, next) => {
   next();
 });
 
-//! Ruta para obtener datos de la base de datos.
+//! Ruta para obtener datos de la base de datos en la url /info.
 app.get("/info", (req, res) => {
   Person.find({}).then((persons) =>
     res.send(
-      `Phonebook has info for ${persons.length} people <br> ${new Date()}`
+      `Phonebook has info for ${persons.length} people <br> ${new Date()}` //!Obtenemos las cantidades de personas existentes y la fecha de creacion del servidor.
     )
   );
 });
 
+//! Ruta para obtener datos de la base de datos.
 app.get("/persons", (req, res) => {
   Person.find({}).then((persons) => res.json(persons));
 });
@@ -42,12 +43,6 @@ app.post("/persons", (req, res, next) => {
   // if (!body.name) {
   //   return res.status(400).json({
   //     error: "Enter the person's name",
-  //   });
-  // }
-  // //!Validando que el name no exista
-  // if (Person.some((person) => person.name === body.name)) {
-  //   return res.status(400).json({
-  //     error: "the name already exists",
   //   });
   // }
 
@@ -89,7 +84,7 @@ app.put("/persons/:id", (req, res, next) => {
     { name, number },
     {
       new: true, //! { new: true } devuelve el documento actualizado en lugar del documento original.
-      runValidators: true, //! {runValidators: true} indica que debe ejecutar las validaciones definidas en el modelo Schema antes de actualizar el documento.
+      runValidators: true, //! {runValidators: true} activamos las validaciones definidas en el Schema antes de actualizar el documento.
       context: "query", //! {context: 'query'} indica que se debe ejecutar la función en el contexto de consulta.
     }
   )
@@ -97,7 +92,7 @@ app.put("/persons/:id", (req, res, next) => {
       if (updatedPerson) {
         res.json(updatedPerson);
       } else {
-        //! {status: 404} indica que el recurso no fue encontrado Y devuelvo mi error personalizado en formato Json.
+        //! {status: 404} indica que el recurso no fue encontrado Y devuelvo el error personalizado en formato Json.
         res.status(404).json({
           error: "Person not found or was removed from the server",
         });
@@ -118,7 +113,7 @@ app.delete("/persons/:id", (req, res, next) => {
 //! Controlador (Middleware) de error 404.
 const errorHandler = (error, req, res, next) => {
   console.log(error.message);
-  //! Verificando que el id sea correcto si es incorrecto me devuelve CastError 404.
+  //! Verificando que el id sea correcto si es incorrecto me devuelve CastError 400 formato incorrecto.
   if (error.name === "CastError") {
     return res.status(400).send({ error: "malformatted id" });
   } else if (error.name === "ValidationError") {
